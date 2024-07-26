@@ -8,19 +8,19 @@ public struct ProgressBarStyle {
         case standard
         case simple
         case custom(String)
-        
+
         var format: String {
             switch self {
             case .standard:
                 return "{l_bar}{bar}| {n_fmt}/{total_fmt} [{elapsed}<{remaining}, {rate_fmt}{postfix}]"
             case .simple:
                 return "{l_bar}{bar}| {percentage:3.0f}%"
-            case .custom(let format):
+            case let .custom(format):
                 return format
             }
         }
     }
-    
+
     /// Defines the available colors for the progress bar.
     public enum Color: String {
         case black = "\u{001B}[30m"
@@ -33,7 +33,7 @@ public struct ProgressBarStyle {
         case white = "\u{001B}[37m"
         case reset = "\u{001B}[0m"
     }
-    
+
     /// The format of the progress bar.
     public var barFormat: BarFormat
     /// The separator between the percentage and the progress bar.
@@ -56,7 +56,7 @@ public struct ProgressBarStyle {
     public var barColor: Color?
     /// The color of the description text.
     public var descColor: Color?
-    
+
     /// The default style for the progress bar.
     public static let `default` = ProgressBarStyle(
         barFormat: .standard,
@@ -71,7 +71,7 @@ public struct ProgressBarStyle {
         barColor: nil,
         descColor: nil
     )
-    
+
     /// Initializes a new ProgressBarStyle instance.
     public init(
         barFormat: BarFormat = .standard,

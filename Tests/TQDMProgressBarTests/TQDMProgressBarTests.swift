@@ -1,5 +1,5 @@
-import XCTest
 @testable import TQDMProgressBar
+import XCTest
 
 final class TQDMProgressBarTests: XCTestCase {
     func testExample() throws {

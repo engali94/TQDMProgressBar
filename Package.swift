@@ -6,21 +6,23 @@ let package = Package(
     products: [
         .library(
             name: "TQDMProgressBar",
-            targets: ["TQDMProgressBar"]),
+            targets: ["TQDMProgressBar"]
+        ),
         .executable(
             name: "ProgressBarDemo",
             targets: ["ProgressBarDemo"]
-        )
+        ),
     ],
     targets: [
         .target(
             name: "TQDMProgressBar"),
         .testTarget(
             name: "TQDMProgressBarTests",
-            dependencies: ["TQDMProgressBar"]),
+            dependencies: ["TQDMProgressBar"]
+        ),
         .executableTarget(
             name: "ProgressBarDemo",
             dependencies: ["TQDMProgressBar"]
-        )
+        ),
     ]
 )

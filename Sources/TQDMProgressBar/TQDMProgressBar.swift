@@ -29,7 +29,7 @@ public class ProgressBar {
     private var lastPrintN: Int = 0
     private let minIntervalSeconds: TimeInterval = 0.1
     private let maxIntervalSeconds: TimeInterval = 10.0
-    private var lastPrintTime: Date = Date()
+    private var lastPrintTime: Date = .init()
     private var width: Int = 40
     private let unitScale: Double
     private let unitDivisor: Double
@@ -41,7 +41,7 @@ public class ProgressBar {
     private var iterator: AnyIterator<Any>?
     private var isFirstYield = true
     private var style: ProgressBarStyle
-    
+
     /// Initializes a new ProgressBar instance with a known total.
     ///
     /// - Parameters:
@@ -63,12 +63,12 @@ public class ProgressBar {
         self.total = total
         self.desc = desc
         self.style = style
-        self.unitScale = style.unitScale
-        self.unitDivisor = style.unitDivisor
-        self.startTime = Date()
-        self.width = style.ncols ?? 40
+        unitScale = style.unitScale
+        unitDivisor = style.unitDivisor
+        startTime = Date()
+        width = style.ncols ?? 40
     }
-    
+
     /// Initializes a new ProgressBar instance with a sequence.
     ///
     /// - Parameters:
@@ -86,18 +86,18 @@ public class ProgressBar {
     /// }
     /// ```
     public init<T: Sequence>(sequence: T, desc: String = "", style: ProgressBarStyle = .default) {
-        self.total = (sequence as? (any Collection))?.count
+        total = (sequence as? (any Collection))?.count
         self.desc = desc
         self.style = style
-        self.unitScale = style.unitScale
-        self.unitDivisor = style.unitDivisor
-        self.startTime = Date()
-        self.width = style.ncols ?? 40
-        
+        unitScale = style.unitScale
+        unitDivisor = style.unitDivisor
+        startTime = Date()
+        width = style.ncols ?? 40
+
         var iterator = sequence.makeIterator()
         self.iterator = AnyIterator { iterator.next() as Any }
     }
-    
+
     /// Initializes a new ProgressBar instance without a known total.
     ///
     /// - Parameters:
@@ -119,12 +119,12 @@ public class ProgressBar {
         self.total = total
         self.desc = desc
         self.style = style
-        self.unitScale = style.unitScale
-        self.unitDivisor = style.unitDivisor
-        self.startTime = Date()
-        self.width = style.ncols ?? 40
+        unitScale = style.unitScale
+        unitDivisor = style.unitDivisor
+        startTime = Date()
+        width = style.ncols ?? 40
     }
-    
+
     /// Iterates over a sequence, updating the progress bar for each item.
     ///
     /// - Parameter sequence: The sequence to iterate over.
@@ -139,7 +139,7 @@ public class ProgressBar {
     ///     Thread.sleep(forTimeInterval: 0.1)
     /// }
     /// ```
-    public func iterate<T: Sequence>(_ sequence: T) -> AnySequence<T.Element> {
+    public func iterate<T: Sequence>(_: T) -> AnySequence<T.Element> {
         return AnySequence { AnyIterator {
             if let next = self.iterator?.next() as? T.Element {
                 self.update(1)
@@ -150,17 +150,17 @@ public class ProgressBar {
             }
         }}
     }
-    
+
     private func next() -> Any? {
-        if let next = self.iterator?.next() {
-            self.update(1)
+        if let next = iterator?.next() {
+            update(1)
             return next
         } else {
-            self.close()
+            close()
             return nil
         }
     }
-    
+
     /// Updates the progress bar.
     ///
     /// - Parameter n: The number of steps to advance the progress bar.
@@ -183,7 +183,7 @@ public class ProgressBar {
             lastPrintTime = Date()
         }
     }
-    
+
     /// Resets the progress bar.
     ///
     /// - Parameter total: The new total number of items. If nil, the original total is used.
@@ -205,7 +205,7 @@ public class ProgressBar {
         }
         printProgress()
     }
-    
+
     /// Closes the progress bar and moves to the next line.
     ///
     /// Example:
@@ -224,7 +224,7 @@ public class ProgressBar {
         }
         print() // Move to next line
     }
-    
+
     /// Sets a new description for the progress bar.
     ///
     /// - Parameter desc: The new description.
@@ -240,7 +240,7 @@ public class ProgressBar {
         self.desc = desc
         printProgress()
     }
-    
+
     /// Sets a new postfix for the progress bar.
     ///
     /// - Parameter postfix: The new postfix.
@@ -259,21 +259,21 @@ public class ProgressBar {
         self.postfix = postfix
         printProgress()
     }
-    
+
     private func shouldPrint() -> Bool {
         let now = Date()
         let timeSinceLastPrint = now.timeIntervalSince(lastPrintTime)
         return timeSinceLastPrint >= minIntervalSeconds ||
-            (total != nil && Double(self.n - lastPrintN) / Double(total!) >= 0.01) ||
+            (total != nil && Double(n - lastPrintN) / Double(total!) >= 0.01) ||
             timeSinceLastPrint >= maxIntervalSeconds
     }
-    
+
     private func printProgress() {
         let now = Date()
         let elapsedSeconds = now.timeIntervalSince(startTime)
-        
+
         var values: [String: String] = [:]
-        
+
         // Percentage
         if let total = total {
             let percentage = min(100.0, max(0.0, Double(n) / Double(total) * 100.0))
@@ -281,7 +281,7 @@ public class ProgressBar {
         } else {
             values["percentage"] = "    "
         }
-        
+
         // Progress bar
         if let total = total {
             let filledLength = Int(Double(width) * Double(n) / Double(total))
@@ -290,13 +290,13 @@ public class ProgressBar {
         } else {
             values["bar"] = ""
         }
-        
+
         // Counters and Unit
         let unit = style.unitScale == 1.0 && style.unitDivisor == 1.0 ? "" : "it"
         values["n_fmt"] = formatNumber(Double(n) * style.unitScale / style.unitDivisor)
         values["total_fmt"] = total.map { formatNumber(Double($0) * style.unitScale / style.unitDivisor) } ?? "?"
         values["unit"] = unit
-        
+
         // Rate
         if elapsedSeconds > 0 {
             let rate = Double(n) / elapsedSeconds
@@ -306,10 +306,10 @@ public class ProgressBar {
         } else {
             values["rate_fmt"] = "? it/s"
         }
-        
+
         // Elapsed time
         values["elapsed"] = formatInterval(elapsedSeconds)
-        
+
         // Remaining time
         if let total = total, n > 0 {
             let remainingSeconds = elapsedSeconds * Double(total - n) / Double(n)
@@ -317,64 +317,61 @@ public class ProgressBar {
         } else {
             values["remaining"] = "?"
         }
-        
+
         // Description and postfix
         values["desc"] = desc
         values["postfix"] = postfix
-        
+
         // Left bar (everything to the left of the progress bar)
         values["l_bar"] = "\(values["desc"]!) \(values["percentage"]!)\(style.barSeparator)"
-        
+
         var output = style.barFormat.format
         for (key, value) in values {
             output = output.replacingOccurrences(of: "{\(key)}", with: value)
         }
-        
+
         // Apply bar color
         if let barColor = style.barColor {
             let coloredBar = barColor.rawValue + values["bar"]! + ProgressBarStyle.Color.reset.rawValue
             output = output.replacingOccurrences(of: values["bar"]!, with: coloredBar)
         }
-        
+
         // Apply description color
         if let descColor = style.descColor {
             let coloredDesc = descColor.rawValue + values["desc"]! + ProgressBarStyle.Color.reset.rawValue
             output = output.replacingOccurrences(of: values["desc"]!, with: coloredDesc)
         }
-        
+
         print("\r\(output)", terminator: "")
         fflush(stdout)
     }
 
-    
     private func formatInterval(_ interval: TimeInterval) -> String {
         let hours = Int(interval) / 3600
         let minutes = (Int(interval) % 3600) / 60
         let seconds = Int(interval) % 60
-        
+
         if hours > 0 {
             return String(format: "%d:%02d:%02d", hours, minutes, seconds)
         } else {
             return String(format: "%02d:%02d", minutes, seconds)
         }
     }
-    
+
     private func formatNumber(_ n: Double) -> String {
         if n >= 1_000_000_000 {
             return String(format: "%.1fB", n / 1_000_000_000)
         } else if n >= 1_000_000 {
             return String(format: "%.1fM", n / 1_000_000)
-        } else if n >= 1_000 {
-            return String(format: "%.1fK", n / 1_000)
+        } else if n >= 1000 {
+            return String(format: "%.1fK", n / 1000)
         } else {
             return String(format: "%.1f", n)
         }
     }
 }
 
-extension ProgressBar {
-    
-    
+public extension ProgressBar {
     /// Creates a progress bar for a range of numbers.
     ///
     /// - Parameters:
@@ -392,7 +389,7 @@ extension ProgressBar {
     ///     bar.update(1)
     /// }
     /// ```
-    public convenience init(start: Int, end: Int, step: Int = 1) {
+    convenience init(start: Int, end: Int, step: Int = 1) {
         let total: Int
         if step != 0 {
             total = max(0, (end - start + step - 1) / step)
@@ -401,7 +398,7 @@ extension ProgressBar {
         }
         self.init(total: total)
     }
-    
+
     /// Creates a progress bar for a sequence.
     ///
     /// - Parameters:
@@ -418,15 +415,14 @@ extension ProgressBar {
     ///     Thread.sleep(forTimeInterval: 0.1)
     /// }
     /// ```
-    public static func tqdm<T: Sequence>(_ sequence: T, desc: String = "", style: ProgressBarStyle = .default) -> AnySequence<T.Element> {
+    static func tqdm<T: Sequence>(_ sequence: T, desc: String = "", style: ProgressBarStyle = .default) -> AnySequence<T.Element> {
         let total = (sequence as? (any Collection))?.count ?? 0
         let bar = ProgressBar(total: total, desc: desc, style: style)
         return bar.iterate(sequence)
     }
 }
 
-extension ProgressBar {
-    
+public extension ProgressBar {
     /// Creates a progress bar that executes a closure for each iteration.
     ///
     /// - Parameter closure: The closure to be executed for each iteration.
@@ -439,14 +435,14 @@ extension ProgressBar {
     ///     Thread.sleep(forTimeInterval: 0.1)
     /// }
     /// ```
-    public func forEach(_ closure: () -> Void) {
-        while self.n < self.total! {
+    func forEach(_ closure: () -> Void) {
+        while n < total! {
             closure()
-            self.update(1)
+            update(1)
         }
-        self.close()
+        close()
     }
-    
+
     /// Creates a progress bar that executes an async closure for each iteration.
     ///
     /// - Parameter closure: The async closure to be executed for each iteration.
@@ -458,14 +454,14 @@ extension ProgressBar {
     ///     try await fetchDataFromServer()
     /// }
     /// ```
-    public func forEach(_ closure: () async throws -> Void) async throws {
-        while self.n < self.total! {
+    func forEach(_ closure: () async throws -> Void) async throws {
+        while n < total! {
             try await closure()
-            self.update(1)
+            update(1)
         }
-        self.close()
+        close()
     }
-    
+
     /// Creates a progress bar for an async sequence.
     ///
     /// - Parameters:
@@ -489,7 +485,7 @@ extension ProgressBar {
     /// }
     /// ```
     @available(macOS 10.15, iOS 13.0, *)
-    public static func stream<S: AsyncSequence>(_ sequence: S, total: Int? = nil, desc: String = "") -> AsyncThrowingStream<S.Element, Error> {
+    static func stream<S: AsyncSequence>(_ sequence: S, total: Int? = nil, desc: String = "") -> AsyncThrowingStream<S.Element, Error> {
         let inferredTotal: Int?
         if let total = total {
             inferredTotal = total
@@ -498,7 +494,7 @@ extension ProgressBar {
         } else {
             inferredTotal = nil
         }
-        
+
         let progressBar = ProgressBar(total: inferredTotal, desc: desc)
         return AsyncThrowingStream { continuation in
             Task {
@@ -516,7 +512,7 @@ extension ProgressBar {
             }
         }
     }
-    
+
     /// Tracks the progress of an asynchronous operation.
     ///
     /// - Parameters:
@@ -533,12 +529,12 @@ extension ProgressBar {
     /// print("Download complete, result: \(result)")
     /// ```
     @available(macOS 13.0, iOS 13.0, *)
-    public func track<U>(with polling: TimeInterval = 1,_ operation: @escaping () async throws -> U) async throws -> U {
+    func track<U>(with polling: TimeInterval = 1, _ operation: @escaping () async throws -> U) async throws -> U {
         return try await withThrowingTaskGroup(of: U?.self) { group in
             group.addTask {
                 try await operation()
             }
-            
+
             group.addTask {
                 while !Task.isCancelled {
                     await MainActor.run {
@@ -548,7 +544,7 @@ extension ProgressBar {
                 }
                 return nil
             }
-            
+
             var result: U?
             for try await taskResult in group {
                 if let nonNilResult = taskResult {
@@ -557,15 +553,15 @@ extension ProgressBar {
                     break
                 }
             }
-            
+
             await MainActor.run {
                 self.close()
             }
-            
+
             guard let finalResult = result else {
                 throw CancellationError()
             }
-            
+
             return finalResult
         }
     }
