@@ -1,0 +1,28 @@
+{
+    "configurations": [
+        {
+            "type": "lldb",
+            "request": "launch",
+            "sourceLanguages": [
+                "swift"
+            ],
+            "args": [],
+            "cwd": "${workspaceFolder:TQDMProgressBar}",
+            "name": "Debug ProgressBarDemo",
+            "program": "${workspaceFolder:TQDMProgressBar}/.build/debug/ProgressBarDemo",
+            "preLaunchTask": "swift: Build Debug ProgressBarDemo"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "sourceLanguages": [
+                "swift"
+            ],
+            "args": [],
+            "cwd": "${workspaceFolder:TQDMProgressBar}",
+            "name": "Release ProgressBarDemo",
+            "program": "${workspaceFolder:TQDMProgressBar}/.build/release/ProgressBarDemo",
+            "preLaunchTask": "swift: Build Release ProgressBarDemo"
+        }
+    ]
+}
